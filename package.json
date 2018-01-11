@@ -1,0 +1,15 @@
+{
+  "name": "alexa-bank-holiday",
+  "version": "1.0.0",
+  "description": "An Alexa skill which lets users query UK bank holiday information.",
+  "main": "index.js",
+  "author": "vanita",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "dependencies": {
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5"
+  }
+}
