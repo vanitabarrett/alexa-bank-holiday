@@ -93,6 +93,12 @@ function buildSpeechletResponse(title, textOutput, repromptText, shouldEndSessio
       },
     },
     shouldEndSession,
+    directives: [
+      {
+          type: 'Dialog.ElicitSlot',
+          slotToElicit: 'Country'
+      }
+    ]
   };
 }
 
@@ -132,7 +138,6 @@ function onSessionEnded(sessionEndedRequest, session) {
  */
 function intentGetNextBankHoliday(intent, session, callback, bankHolidayData) {
   var country = intent.slots.Country.value;
-  console.log(intent.slots.Country.value);
 
   if (country === undefined || LIST_OF_UK_COUNTRIES.indexOf(country.toLowerCase()) < 0) {
     var sessionAttributes = {};
@@ -190,7 +195,6 @@ function intentGetNextBankHoliday(intent, session, callback, bankHolidayData) {
         );
       }
     }).catch(function(error) {
-      console.log(error);
       var sessionAttributes = {};
       var textOutput = "Sorry, something went wrong retrieving the bank holiday information! Please try again later."
       var repromptText = null;
