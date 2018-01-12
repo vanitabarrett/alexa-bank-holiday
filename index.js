@@ -50,11 +50,12 @@ function getWelcomeResponse(callback) {
   const sessionAttributes = {};
   const cardTitle = 'Welcome';
   const repromptText = 'You can ask me for information about UK bank holidays. Try saying "when is the next bank holiday in England?"';
+  const textOutput = repromptText;
   const speechOutput = 'Welcome to ' + SKILL_NAME + '. ' + repromptText;
   const shouldEndSession = false;
 
   callback(sessionAttributes,
-    buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+    buildSpeechletResponse(cardTitle, textOutput, repromptText, shouldEndSession, speechOutput, false));
 }
 
 function onSessionStarted(sessionStartedRequest, session) {
@@ -68,39 +69,64 @@ function onLaunch(launchRequest, session, callback) {
 }
 
 function handleSessionEndRequest(callback) {
+  const sessionAttributes = {};
   const cardTitle = 'Goodbye';
+  const repromptText = "Thank you for using UK Bank Holidays. Goodbye!";
+  const textOutput = rempromptText;
   const speechOutput = 'Thank you for using UK Bank Holidays. Goodbye!';
   const shouldEndSession = true;
 
-  callback({}, buildSpeechletResponse(cardTitle, speechOutput, null, shouldEndSession));
+
+  callback(sessionAttributes, buildSpeechletResponse(cardTitle, textOutput, repromptText, shouldEndSession, speechOutput, false));
 }
 
 /* On Intent Functions */
 function buildSpeechletResponse(title, textOutput, repromptText, shouldEndSession, speechOutput = textOutput, directiveSlot) {
-  return {
-    outputSpeech: {
-      type: 'PlainText',
-      text: speechOutput,
-    },
-    card: {
-      type: 'Simple',
-      title: `${title}`,
-      content: `${textOutput}`,
-    },
-    reprompt: {
+  if (directiveSlot) {
+    return {
       outputSpeech: {
         type: 'PlainText',
-        text: repromptText,
+        text: speechOutput,
       },
-    },
-    shouldEndSession,
-    directives: [
-      {
-          type: 'Dialog.ElicitSlot',
-          slotToElicit: directiveSlot
-      }
-    ]
-  };
+      card: {
+        type: 'Simple',
+        title: `${title}`,
+        content: `${textOutput}`,
+      },
+      reprompt: {
+        outputSpeech: {
+          type: 'PlainText',
+          text: repromptText,
+        },
+      },
+      shouldEndSession,
+      directives: [
+        {
+            type: 'Dialog.ElicitSlot',
+            slotToElicit: directiveSlot
+        }
+      ]
+    };
+  } else {
+    return {
+      outputSpeech: {
+        type: 'PlainText',
+        text: speechOutput,
+      },
+      card: {
+        type: 'Simple',
+        title: `${title}`,
+        content: `${textOutput}`,
+      },
+      reprompt: {
+        outputSpeech: {
+          type: 'PlainText',
+          text: repromptText,
+        },
+      },
+      shouldEndSession,
+    };
+  }
 }
 
 function onIntent(intentRequest, session, callback) {
@@ -120,7 +146,7 @@ function onIntent(intentRequest, session, callback) {
   } else if (intentName === 'AMAZON.StopIntent' || intentName === 'AMAZON.CancelIntent') {
     handleSessionEndRequest(callback);
   } else {
-    throw new Error('Invalid intent');
+    getWelcomeResponse(callback);
   }
 }
 
@@ -321,11 +347,34 @@ function intentGetBankHolidaysMonth(intent, session, callback, bankHolidayData) 
       }
 
       if (matchingDates.length > 0) {
-        var responseString = "The following bank holidays are in " + MONTHS[givenMonth.getMonth()] + " " + givenMonth.getFullYear() + ". ";
+        var responseString = "";
+        var collapsedBankHolidayData = [];
 
-        matchingDates.forEach(function(matchingBankHoliday) {
-          responseString += matchingBankHoliday.title + " in " + matchingBankHoliday.country + ". ";
+        matchingDates.forEach(function(matchingBankHolidays) {
+          if (collapsedBankHolidayData.indexOf(matchingBankHolidays.date + " is " + matchingBankHolidays.title + " in ") < 0 ) {
+            collapsedBankHolidayData.push(matchingBankHolidays.date + " is " + matchingBankHolidays.title + " in ");
+          }
         });
+
+        matchingDates.forEach(function(matchingBankHolidays) {
+          for (var i = 0; i < collapsedBankHolidayData.length; i++) {
+            if (collapsedBankHolidayData[i].includes(matchingBankHolidays.date) && collapsedBankHolidayData[i].includes(matchingBankHolidays.title) && !collapsedBankHolidayData[i].includes(matchingBankHolidays.country)) {
+              collapsedBankHolidayData[i] += matchingBankHolidays.country + ", ";
+            }
+          }
+        });
+
+        // Construct response string
+        var areOrIs = collapsedBankHolidayData.length > 1 ? "are " : "is ";
+        var holidayOrHolidays = collapsedBankHolidayData.length > 1 ? "holidays" : "holiday";
+
+        responseString += "There " + areOrIs + collapsedBankHolidayData.length + " bank " + holidayOrHolidays + " in " + MONTHS[givenMonth.getMonth()] + " " + givenMonth.getFullYear() + ". ";
+
+        collapsedBankHolidayData.forEach(function(holiday) {
+          responseString += holiday + ". ";
+        });
+
+        console.log(responseString);
 
         var directiveSlot = "Month";
         var sessionAttributes = {};
