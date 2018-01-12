@@ -48,7 +48,7 @@ exports.handler = (event, context, callback) => {
 function getWelcomeResponse(callback) {
   const sessionAttributes = {};
   const cardTitle = 'Welcome';
-  const repromptText = 'You can ask me for the next bank holiday, or if a specific date is a bank holiday.';
+  const repromptText = 'You can ask me for the next bank holiday, or if a specific date is a bank holiday. Try saying "when is the next bank holiday"';
   const speechOutput = 'Welcome to ' + SKILL_NAME + '. ' + repromptText;
   const shouldEndSession = false;
 
