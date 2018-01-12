@@ -271,6 +271,77 @@ function intentIsDateBankHoliday(intent, session, callback, bankHolidayData) {
   }
 }
 
+function intentGetBankHolidaysMonth(intent, session, callback, bankHolidayData) {
+  var givenMonth = "2018-12" //intent.slots.Month.value;
+
+  if (givenMonth === undefined) {
+    var directiveSlot = "Month";
+    var sessionAttributes = {};
+    var textOutput = "Sorry, I didn't quite catch which month was said. Please repeat the month.";
+    var repromptText = textOutput;
+    var shouldEndSession = false;
+    var speechOutput = "Sorry, I didn't quite catch month date was said. Please repeat the month.";
+    callback(
+      sessionAttributes,
+      buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
+    );
+  } else {
+    var data = getBankHolidayData().then(function(bankHolidayData) {
+      // givenMonth defaults to 1st of month. When comparing, only compare with month value.
+      givenMonth = new Date(givenMonth);
+
+      var matchingDates = [];
+
+      for (var country in bankHolidayData) {
+        var eventsInCountry = bankHolidayData[country]["events"];
+
+        eventsInCountry.forEach(function(event) {
+          var eventDate = new Date(event.date);
+
+          if (eventDate.getMonth() === givenMonth.getMonth() && eventDate.getYear() === givenMonth.getYear()) {
+            event.country = bankHolidayData[country].division
+            matchingDates.push(event);
+          }
+        })
+      }
+
+      console.log(matchingDates.length);
+
+      if (matchingDates.length > 0) {
+        var responseString = "The following bank holidays are in " + intent.slots.Month.value + ". ";
+
+        matchingDates.forEach(function(matchingBankHoliday) {
+          responseString += matchingBankHoliday.title + " in " + matchingBankHoliday.country + ". ";
+        });
+
+        var directiveSlot = "Month";
+        var sessionAttributes = {};
+        var textOutput = responseString;
+        var repromptText = null;
+        var shouldEndSession = true;
+        var speechOutput = responseString;
+        callback(
+          sessionAttributes,
+          buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
+        );
+      } else {
+        var directiveSlot = "Month";
+        var sessionAttributes = {};
+        var textOutput = "I could not find any bank holidays in the UK in " + intent.slots.Month.value ;
+        var repromptText = null;
+        var shouldEndSession = true;
+        var speechOutput = "I could not find any bank holidays in the UK in " + intent.slots.Month.value ;
+        callback(
+          sessionAttributes,
+          buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
+        );
+      }
+    }).catch(function(error) {
+      sendError("Month");
+    });
+  }
+}
+
 /* Helper Functions */
 
 function sendError(directiveSlot) {
