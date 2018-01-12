@@ -272,7 +272,7 @@ function intentIsDateBankHoliday(intent, session, callback, bankHolidayData) {
 }
 
 function intentGetBankHolidaysMonth(intent, session, callback, bankHolidayData) {
-  var givenMonth = "2018-12" //intent.slots.Month.value;
+  var givenMonth = intent.slots.Month.value;
 
   if (givenMonth === undefined) {
     var directiveSlot = "Month";
