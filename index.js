@@ -240,7 +240,7 @@ function intentIsDateBankHoliday(intent, session, callback, bankHolidayData) {
         var responseString = intent.slots.Date.value + " is a bank holiday. ";
 
         matchingDates.forEach(function(matchingBankHoliday) {
-          responseString += " In " + matchingBankHoliday.country + " this day is " + matchingBankHoliday.title;
+          responseString += " In " + matchingBankHoliday.country + " this day is " + matchingBankHoliday.title + ".";
         });
 
         var directiveSlot = "Date";
