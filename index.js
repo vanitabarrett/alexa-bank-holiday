@@ -203,7 +203,6 @@ function intentGetNextBankHoliday(intent, session, callback, bankHolidayData) {
   }
 }
 
-intentIsDateBankHoliday();
 function intentIsDateBankHoliday(intent, session, callback, bankHolidayData) {
   var givenDate = intent.slots.Date.value;
 
