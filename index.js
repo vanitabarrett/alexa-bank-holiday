@@ -75,7 +75,7 @@ function handleSessionEndRequest(callback) {
 }
 
 /* On Intent Functions */
-function buildSpeechletResponse(title, textOutput, repromptText, shouldEndSession, speechOutput = textOutput) {
+function buildSpeechletResponse(title, textOutput, repromptText, shouldEndSession, speechOutput = textOutput, directiveSlot) {
   return {
     outputSpeech: {
       type: 'PlainText',
@@ -96,7 +96,7 @@ function buildSpeechletResponse(title, textOutput, repromptText, shouldEndSessio
     directives: [
       {
           type: 'Dialog.ElicitSlot',
-          slotToElicit: 'Country'
+          slotToElicit: directiveSlot
       }
     ]
   };
@@ -140,6 +140,7 @@ function intentGetNextBankHoliday(intent, session, callback, bankHolidayData) {
   var country = intent.slots.Country.value;
 
   if (country === undefined || LIST_OF_UK_COUNTRIES.indexOf(country.toLowerCase()) < 0) {
+    var directiveSlot = "Country";
     var sessionAttributes = {};
     var textOutput = "What part of the UK are you in? For example: England or Northern Ireland.";
     var repromptText = "Sorry, I didn't quite catch that. " + textOutput;
@@ -147,7 +148,7 @@ function intentGetNextBankHoliday(intent, session, callback, bankHolidayData) {
     var speechOutput = "What part of the UK are you in? For example: England or Northern Ireland.";
     callback(
       sessionAttributes,
-      buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput)
+      buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
     );
   }
   else {
@@ -165,7 +166,7 @@ function intentGetNextBankHoliday(intent, session, callback, bankHolidayData) {
       var sortedDataForCountry = dataForCountry.sort(sortByDate)
       var nextBankHoliday = false;
 
-      for (var i = 0; i < sortedDataForCountry.length; i++) {
+      for (var i = 0; i <= sortedDataForCountry.length; i++) {
         var date = new Date(sortedDataForCountry[i].date);
         if (date > currentDate) {
           nextBankHoliday = sortedDataForCountry[i];
@@ -174,6 +175,7 @@ function intentGetNextBankHoliday(intent, session, callback, bankHolidayData) {
       }
 
       if (nextBankHoliday) {
+        var directiveSlot = "Country";
         var sessionAttributes = {};
         var textOutput = "The next bank holiday in " + country + " is " + nextBankHoliday.title + " on " + nextBankHoliday.date;
         var repromptText = null;
@@ -181,34 +183,107 @@ function intentGetNextBankHoliday(intent, session, callback, bankHolidayData) {
         var speechOutput = "The next bank holiday in " + country + " is " + nextBankHoliday.title + " on " + nextBankHoliday.date;
         callback(
           sessionAttributes,
-          buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput)
+          buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
         );
       } else {
+        var directiveSlot = "Country";
         var sessionAttributes = {};
-        var textOutput = "We could not find any upcoming bank holidays! Please try again later."
+        var textOutput = "I could not find any upcoming bank holidays! Please try again later."
         var repromptText = null;
         var shouldEndSession = true;
-        var speechOutput = "We could not find any upcoming bank holidays! Please try again later."
+        var speechOutput = "I could not find any upcoming bank holidays! Please try again later."
         callback(
           sessionAttributes,
-          buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput)
+          buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
         );
       }
     }).catch(function(error) {
-      var sessionAttributes = {};
-      var textOutput = "Sorry, something went wrong retrieving the bank holiday information! Please try again later."
-      var repromptText = null;
-      var shouldEndSession = true;
-      var speechOutput = "Sorry, something went wrong retrieving the bank holiday information! Please try again later."
-      callback(
-        sessionAttributes,
-        buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput)
-      );
+      sendError("Country");
+    });
+  }
+}
+
+function intentIsDateBankHoliday(intent, session, callback, bankHolidayData) {
+  var givenDate = intent.slots.Date.value;
+
+  if (givenDate === undefined) {
+    var directiveSlot = "Date";
+    var sessionAttributes = {};
+    var textOutput = "Sorry, I didn't quite catch which date was said. Please repeat the date.";
+    var repromptText = textOutput;
+    var shouldEndSession = false;
+    var speechOutput = "Sorry, I didn't quite catch which date was said. Please repeat the date.";
+    callback(
+      sessionAttributes,
+      buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
+    );
+  } else {
+    var data = getBankHolidayData().then(function(bankHolidayData) {
+      givenDate = new Date(givenDate);
+
+      var matchingDates = [];
+
+      for (var country in bankHolidayData) {
+        var eventsInCountry = bankHolidayData[country]["events"];
+
+        eventsInCountry.forEach(function(event) {
+          var eventDate = new Date(event.date);
+
+          if (+eventDate === +givenDate) {
+            event.country = bankHolidayData[country].division
+            matchingDates.push(event);
+          }
+        })
+      }
+
+      if (matchingDates.length > 0) {
+        var responseString = givenDate + " is a bank holiday.";
+
+        matchingDates.forEach(function(matchingBankHoliday) {
+          responseString += "In " + matchingBankHoliday.country + " this day is " + matchingBankHoliday.title;
+        });
+
+        var directiveSlot = "Date";
+        var sessionAttributes = {};
+        var textOutput = responseString;
+        var repromptText = null;
+        var shouldEndSession = true;
+        var speechOutput = responseString;
+        callback(
+          sessionAttributes,
+          buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
+        );
+      } else {
+        var directiveSlot = "Date";
+        var sessionAttributes = {};
+        var textOutput = "I could not find any bank holidays in the UK on " + givenDate ;
+        var repromptText = null;
+        var shouldEndSession = true;
+        var speechOutput = "I could not find any bank holidays in the UK on " + givenDate ;
+        callback(
+          sessionAttributes,
+          buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
+        );
+      }
+    }).catch(function(error) {
+      sendError("Date");
     });
   }
 }
 
 /* Helper Functions */
+
+function sendError(directiveSlot) {
+  var sessionAttributes = {};
+  var textOutput = "Sorry, something went wrong retrieving the bank holiday information! Please try again later."
+  var repromptText = null;
+  var shouldEndSession = true;
+  var speechOutput = "Sorry, something went wrong retrieving the bank holiday information! Please try again later."
+  callback(
+    sessionAttributes,
+    buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
+  );
+}
 
 function getBankHolidayData() {
   return request({url: BANK_HOLIDAY_API, json: true});
