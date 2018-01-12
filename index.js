@@ -4,6 +4,7 @@ const request = require('request-promise-native');
 const BANK_HOLIDAY_API = 'https://www.gov.uk/bank-holidays.json';
 const SKILL_NAME = "UK Bank Holidays";
 const LIST_OF_UK_COUNTRIES = ["england", "scotland", "wales", "ireland", "northern ireland"];
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 /* Setup Functions */
 
 function buildResponse(sessionAttributes, speechletResponse) {
@@ -320,7 +321,7 @@ function intentGetBankHolidaysMonth(intent, session, callback, bankHolidayData) 
       }
 
       if (matchingDates.length > 0) {
-        var responseString = "The following bank holidays are in " + intent.slots.Month.value + ". ";
+        var responseString = "The following bank holidays are in " + MONTHS[givenMonth.getMonth()] + " " + givenMonth.getYear() + ". ";
 
         matchingDates.forEach(function(matchingBankHoliday) {
           responseString += matchingBankHoliday.title + " in " + matchingBankHoliday.country + ". ";
@@ -339,10 +340,10 @@ function intentGetBankHolidaysMonth(intent, session, callback, bankHolidayData) 
       } else {
         var directiveSlot = "Month";
         var sessionAttributes = {};
-        var textOutput = "I could not find any bank holidays in the UK in " + intent.slots.Month.value ;
+        var textOutput = "I could not find any bank holidays in the UK in " + MONTHS[givenMonth.getMonth()] + " " + givenMonth.getYear() ;
         var repromptText = null;
         var shouldEndSession = true;
-        var speechOutput = "I could not find any bank holidays in the UK in " + intent.slots.Month.value ;
+        var speechOutput = "I could not find any bank holidays in the UK in " + MONTHS[givenMonth.getMonth()] + " " + givenMonth.getYear();
         callback(
           sessionAttributes,
           buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
