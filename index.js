@@ -256,10 +256,10 @@ function intentIsDateBankHoliday(intent, session, callback, bankHolidayData) {
       } else {
         var directiveSlot = "Date";
         var sessionAttributes = {};
-        var textOutput = "I could not find any bank holidays in the UK on " + givenDate ;
+        var textOutput = "I could not find any bank holidays in the UK on " + intent.slots.Date.value ;
         var repromptText = null;
         var shouldEndSession = true;
-        var speechOutput = "I could not find any bank holidays in the UK on " + givenDate ;
+        var speechOutput = "I could not find any bank holidays in the UK on " + intent.slots.Date.value ;
         callback(
           sessionAttributes,
           buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
