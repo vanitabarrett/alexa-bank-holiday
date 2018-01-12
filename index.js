@@ -203,6 +203,7 @@ function intentGetNextBankHoliday(intent, session, callback, bankHolidayData) {
   }
 }
 
+intentIsDateBankHoliday();
 function intentIsDateBankHoliday(intent, session, callback, bankHolidayData) {
   var givenDate = intent.slots.Date.value;
 
@@ -237,11 +238,25 @@ function intentIsDateBankHoliday(intent, session, callback, bankHolidayData) {
       }
 
       if (matchingDates.length > 0) {
-        var responseString = intent.slots.Date.value + " is a bank holiday. ";
+        var responseString = intent.slots.Date.value + " is a bank holiday in ";
+        var matchingCountries = [];
+        var matchingHolidayTitles = [];
 
+        // Retrieve countries which this bank holiday applies to
+        // Retrieve bank holiday titles
         matchingDates.forEach(function(matchingBankHoliday) {
-          responseString += " In " + matchingBankHoliday.country + " this day is " + matchingBankHoliday.title + ".";
+          if (matchingCountries.indexOf(matchingBankHoliday.country) < 0 ) {
+            matchingCountries.push(matchingBankHoliday.country);
+          }
+          if (matchingHolidayTitles.indexOf(matchingBankHoliday.title) < 0 ) {
+            matchingHolidayTitles.push(matchingBankHoliday.title);
+          }
         });
+        responseString += constructSentenceFromArray(matchingCountries);
+        responseString += " This day is known as ";
+        responseString += constructSentenceFromArray(matchingHolidayTitles);
+
+        console.log(responseString);
 
         var directiveSlot = "Date";
         var sessionAttributes = {};
@@ -305,8 +320,6 @@ function intentGetBankHolidaysMonth(intent, session, callback, bankHolidayData) 
         })
       }
 
-      console.log(matchingDates.length);
-
       if (matchingDates.length > 0) {
         var responseString = "The following bank holidays are in " + intent.slots.Month.value + ". ";
 
@@ -365,3 +378,23 @@ function sortByDate(a, b){
   var dateB = new Date(b.date).getTime();
   return dateA > dateB ? 1 : -1;
 };
+
+function constructSentenceFromArray(array) {
+  var sentence = "";
+
+  for (var i = 0; i < array.length; i++) {
+    sentence += array[i];
+
+    if (i + 1 === array.length) {
+      sentence += ".";
+    }
+    else if (i + 1 === array.length - 1) {
+      sentence += " and ";
+    }
+    else {
+      sentence += ", ";
+    }
+  }
+
+  return sentence;
+}
