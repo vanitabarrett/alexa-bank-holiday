@@ -252,7 +252,7 @@ function intentIsDateBankHoliday(intent, session, callback, bankHolidayData) {
           }
         });
         responseString += constructSentenceFromArray(matchingCountries);
-        responseString += " This day is known as ";
+        responseString += " This day is ";
         responseString += constructSentenceFromArray(matchingHolidayTitles);
 
         console.log(responseString);
