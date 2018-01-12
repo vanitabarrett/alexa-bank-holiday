@@ -321,7 +321,7 @@ function intentGetBankHolidaysMonth(intent, session, callback, bankHolidayData) 
       }
 
       if (matchingDates.length > 0) {
-        var responseString = "The following bank holidays are in " + MONTHS[givenMonth.getMonth()] + " " + givenMonth.getYear() + ". ";
+        var responseString = "The following bank holidays are in " + MONTHS[givenMonth.getMonth()] + " " + givenMonth.getFullYear() + ". ";
 
         matchingDates.forEach(function(matchingBankHoliday) {
           responseString += matchingBankHoliday.title + " in " + matchingBankHoliday.country + ". ";
@@ -340,10 +340,10 @@ function intentGetBankHolidaysMonth(intent, session, callback, bankHolidayData) 
       } else {
         var directiveSlot = "Month";
         var sessionAttributes = {};
-        var textOutput = "I could not find any bank holidays in the UK in " + MONTHS[givenMonth.getMonth()] + " " + givenMonth.getYear() ;
+        var textOutput = "I could not find any bank holidays in the UK in " + MONTHS[givenMonth.getMonth()] + " " + givenMonth.getFullYear() ;
         var repromptText = null;
         var shouldEndSession = true;
-        var speechOutput = "I could not find any bank holidays in the UK in " + MONTHS[givenMonth.getMonth()] + " " + givenMonth.getYear();
+        var speechOutput = "I could not find any bank holidays in the UK in " + MONTHS[givenMonth.getMonth()] + " " + givenMonth.getFullYear();
         callback(
           sessionAttributes,
           buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
