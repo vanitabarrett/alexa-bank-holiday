@@ -201,13 +201,15 @@ function intentGetNextBankHoliday(intent, session, callback, bankHolidayData) {
         }
       }
 
+      var optionalNotes = nextBankHoliday.notes !== "" ? ". This is a " + nextBankHoliday.notes : "";
+
       if (nextBankHoliday) {
         var directiveSlot = "Country";
         var sessionAttributes = {};
-        var textOutput = "The next bank holiday in " + country + " is " + nextBankHoliday.title + " on " + nextBankHoliday.date;
+        var textOutput = "The next bank holiday in " + country + " is " + nextBankHoliday.title + " on " + nextBankHoliday.date + optionalNotes;
         var repromptText = null;
         var shouldEndSession = true;
-        var speechOutput = "The next bank holiday in " + country + " is " + nextBankHoliday.title + " on " + nextBankHoliday.date;
+        var speechOutput = "The next bank holiday in " + country + " is " + nextBankHoliday.title + " on " + nextBankHoliday.date + optionalNotes;
         callback(
           sessionAttributes,
           buildSpeechletResponse(SKILL_NAME, textOutput, repromptText, shouldEndSession, speechOutput, directiveSlot)
@@ -274,15 +276,15 @@ function intentIsDateBankHoliday(intent, session, callback, bankHolidayData) {
           if (matchingCountries.indexOf(matchingBankHoliday.country) < 0 ) {
             matchingCountries.push(matchingBankHoliday.country);
           }
-          if (matchingHolidayTitles.indexOf(matchingBankHoliday.title) < 0 ) {
-            matchingHolidayTitles.push(matchingBankHoliday.title);
+          var optionalNotes = matchingBankHoliday.notes !== "" ? " (" + matchingBankHoliday.notes + ") " : "";
+
+          if (matchingHolidayTitles.indexOf(matchingBankHoliday.title + optionalNotes) < 0 ) {
+            matchingHolidayTitles.push(matchingBankHoliday.title + optionalNotes);
           }
         });
         responseString += constructSentenceFromArray(matchingCountries);
         responseString += " This day is ";
         responseString += constructSentenceFromArray(matchingHolidayTitles);
-
-        console.log(responseString);
 
         var directiveSlot = "Date";
         var sessionAttributes = {};
@@ -352,7 +354,8 @@ function intentGetBankHolidaysMonth(intent, session, callback, bankHolidayData) 
 
         matchingDates.forEach(function(matchingBankHolidays) {
           if (collapsedBankHolidayData.indexOf(matchingBankHolidays.date + " is " + matchingBankHolidays.title + " in ") < 0 ) {
-            collapsedBankHolidayData.push(matchingBankHolidays.date + " is " + matchingBankHolidays.title + " in ");
+            var optionalNotes = matchingBankHolidays.notes !== "" ? " (" + matchingBankHolidays.notes + ") "  : "";
+            collapsedBankHolidayData.push(matchingBankHolidays.date + " is " + matchingBankHolidays.title + optionalNotes + " in ");
           }
         });
 
