@@ -72,7 +72,7 @@ function handleSessionEndRequest(callback) {
   const sessionAttributes = {};
   const cardTitle = 'Goodbye';
   const repromptText = "Thank you for using UK Bank Holidays. Goodbye!";
-  const textOutput = rempromptText;
+  const textOutput = repromptText;
   const speechOutput = 'Thank you for using UK Bank Holidays. Goodbye!';
   const shouldEndSession = true;
 
